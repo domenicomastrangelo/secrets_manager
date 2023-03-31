@@ -1,6 +1,6 @@
 use std::io;
 
-use crate::db::db::{add_secret, read_secret};
+use crate::db::db::{add_secret, read_secret, remove_secret};
 
 use clap::{Parser, Subcommand};
 use rusqlite::Connection;
@@ -59,7 +59,10 @@ pub fn add(connection: Connection) -> Result<(), io::Error> {
     let mut secret = String::new();
     io::stdin().read_line(&mut secret)?;
 
-    add_secret(&connection, name.clone(), secret);
+    match add_secret(&connection, name.clone(), secret) {
+        Ok(_) => (),
+        Err(_) => return Err(io::Error::new(io::ErrorKind::Other, "Error adding secret")),
+    };
 
     let s = read_secret(&connection, name);
     let s = match s {
@@ -72,14 +75,41 @@ pub fn add(connection: Connection) -> Result<(), io::Error> {
     Ok(())
 }
 
-pub fn remove() {
-    println!("Remove");
+pub fn remove(connection: Connection) -> Result<(), io::Error> {
+    print!("Name: ");
+    io::Write::flush(&mut io::stdout())?;
+
+    let mut name = String::new();
+    io::stdin().read_line(&mut name)?;
+
+    match remove_secret(&connection, name) {
+        Ok(_) => (),
+        Err(_) => {
+            return Err(io::Error::new(
+                io::ErrorKind::Other,
+                "Error removing secret",
+            ))
+        }
+    };
+
+    Ok(())
 }
 
 pub fn edit() {
     println!("Edit");
 }
 
-pub fn show() {
-    println!("Show");
+pub fn show(connection: Connection) -> Result<String, io::Error> {
+    print!("Name: ");
+    io::Write::flush(&mut io::stdout())?;
+
+    let mut name = String::new();
+    io::stdin().read_line(&mut name)?;
+
+    let secret = match read_secret(&connection, name) {
+        Ok(secret) => secret,
+        Err(_) => return Err(io::Error::new(io::ErrorKind::Other, "Error reading secret")),
+    };
+
+    Ok(secret)
 }

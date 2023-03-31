@@ -31,21 +31,27 @@ fn main() {
         }
         Some(SubCommand::Add) => {
             match add(connection) {
-                Ok(_) => println!("\nSecret added"),
-                Err(_) => println!("\nError adding secret"),
+                Ok(_) => println!("Secret added"),
+                Err(_) => println!("Error adding secret"),
             };
         }
         Some(SubCommand::Remove) => {
-            remove();
+            match remove(connection) {
+                Ok(_) => println!("Secret removed"),
+                Err(_) => println!("Error removing secret"),
+            };
         }
         Some(SubCommand::Edit) => {
             edit();
         }
         Some(SubCommand::Show) => {
-            show();
+            match show(connection) {
+                Ok(secret) => println!("{}", secret),
+                Err(_) => println!("Error reading secret"),
+            };
         }
         None => {
-            println!("No command");
+            println!("No subcommand was used");
         }
     }
 }

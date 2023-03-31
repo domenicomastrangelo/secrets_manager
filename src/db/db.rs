@@ -1,7 +1,7 @@
 use rusqlite::Connection;
 
 pub fn connect() -> Result<Connection, rusqlite::Error> {
-    let connection = Connection::open_in_memory()?;
+    let connection = Connection::open("db.sqlite")?;
 
     create_table(&connection)?;
 
@@ -9,7 +9,7 @@ pub fn connect() -> Result<Connection, rusqlite::Error> {
 }
 
 fn create_table(connection: &Connection) -> Result<(), rusqlite::Error> {
-    let stmt = connection.execute(
+    connection.execute(
         "CREATE TABLE IF NOT EXISTS secrets (
             id INTEGER PRIMARY KEY,
             name TEXT NOT NULL,
@@ -43,4 +43,14 @@ pub fn read_secret(connection: &Connection, name: String) -> Result<String, rusq
     let secret: String = stmt.get(0)?;
 
     Ok(secret)
+}
+
+pub fn remove_secret(connection: &Connection, name: String) -> Result<(), rusqlite::Error> {
+    match connection
+        .prepare("DELETE FROM secrets WHERE name = ?")?
+        .execute(&[&name])?
+    {
+        0 => Err(rusqlite::Error::QueryReturnedNoRows),
+        _ => Ok(()),
+    }
 }
