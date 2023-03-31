@@ -1,6 +1,9 @@
 use std::io;
 
+use crate::db::db::{add_secret, read_secret};
+
 use clap::{Parser, Subcommand};
+use rusqlite::Connection;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -39,7 +42,7 @@ pub fn list() {
     println!("List");
 }
 
-pub fn add() -> Result<(), io::Error> {
+pub fn add(connection: Connection) -> Result<(), io::Error> {
     print!("Name: ");
     io::Write::flush(&mut io::stdout())?;
 
@@ -50,20 +53,23 @@ pub fn add() -> Result<(), io::Error> {
 
     print!("Secret: ");
     io::Write::flush(&mut io::stdout())?;
-    
+
     // Read the secret from stdin
-    
+
     let mut secret = String::new();
     io::stdin().read_line(&mut secret)?;
 
-    save_secret_in_database(secret);
+    add_secret(&connection, name.clone(), secret);
+
+    let s = read_secret(&connection, name);
+    let s = match s {
+        Ok(s) => s,
+        Err(_) => String::from(""),
+    };
+
+    println!("{}", s);
 
     Ok(())
-}
-
-#[allow(unused_variables)]
-fn save_secret_in_database(secret: String) {
-
 }
 
 pub fn remove() {
