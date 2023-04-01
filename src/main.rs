@@ -26,30 +26,26 @@ fn main() {
         Some(SubCommand::Logout) => {
             logout();
         }
-        Some(SubCommand::List) => {
-            list();
-        }
-        Some(SubCommand::Add) => {
-            match add(connection) {
-                Ok(_) => println!("Secret added"),
-                Err(_) => println!("Error adding secret"),
-            };
-        }
-        Some(SubCommand::Remove) => {
-            match remove(connection) {
-                Ok(_) => println!("Secret removed"),
-                Err(_) => println!("Error removing secret"),
-            };
-        }
-        Some(SubCommand::Edit) => {
-            edit();
-        }
-        Some(SubCommand::Show) => {
-            match show(connection) {
-                Ok(secret) => println!("{}", secret),
-                Err(_) => println!("Error reading secret"),
-            };
-        }
+        Some(SubCommand::List) => match list(&connection) {
+            Ok(_) => println!(),
+            Err(_) => println!("Error listing secrets"),
+        },
+        Some(SubCommand::Add) => match add(&connection, &None) {
+            Ok(_) => println!("Secret added"),
+            Err(_) => println!("Error adding secret"),
+        },
+        Some(SubCommand::Remove) => match remove(&connection, &None) {
+            Ok(_) => println!("Secret removed"),
+            Err(_) => println!("Error removing secret"),
+        },
+        Some(SubCommand::Edit) => match edit(&connection) {
+            Ok(_) => println!("Secret edited"),
+            Err(_) => println!("Error editing secret"),
+        },
+        Some(SubCommand::Show) => match show(&connection) {
+            Ok(secret) => println!("{}", secret),
+            Err(_) => println!("Error reading secret"),
+        },
         None => {
             println!("No subcommand was used");
         }

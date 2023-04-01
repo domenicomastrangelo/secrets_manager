@@ -28,7 +28,7 @@ pub fn add_secret(
 ) -> Result<(), rusqlite::Error> {
     connection
         .prepare("INSERT INTO secrets (name, secret) VALUES (?, ?)")?
-        .execute(&[&name, &secret])?;
+        .execute(&[&name.trim(), &secret.trim()])?;
 
     Ok(())
 }
@@ -53,4 +53,18 @@ pub fn remove_secret(connection: &Connection, name: String) -> Result<(), rusqli
         0 => Err(rusqlite::Error::QueryReturnedNoRows),
         _ => Ok(()),
     }
+}
+
+pub fn list_secrets(connection: &Connection) -> Result<Vec<String>, rusqlite::Error> {
+    let mut stmt = connection.prepare("SELECT name FROM secrets")?;
+    let mut stmt = stmt.query([])?;
+
+    let mut list = Vec::new();
+
+    while let Some(stmt) = stmt.next()? {
+        let name: String = stmt.get(0)?;
+        list.push(name);
+    }
+
+    Ok(list)
 }

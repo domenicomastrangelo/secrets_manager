@@ -1,6 +1,6 @@
 use std::io;
 
-use crate::db::db::{add_secret, read_secret, remove_secret};
+use crate::db::db::{add_secret, list_secrets, read_secret, remove_secret};
 
 use clap::{Parser, Subcommand};
 use rusqlite::Connection;
@@ -38,18 +38,39 @@ pub fn logout() {
     println!("Logout");
 }
 
-pub fn list() {
-    println!("List");
+pub fn list(connection: &Connection) -> Result<(), io::Error> {
+    match list_secrets(&connection) {
+        Ok(list) => {
+            for secret in list {
+                println!("{}", secret);
+            }
+        }
+        Err(_) => {
+            return Err(io::Error::new(
+                io::ErrorKind::Other,
+                "Error listing secrets",
+            ))
+        }
+    };
+
+    Ok(())
 }
 
-pub fn add(connection: Connection) -> Result<(), io::Error> {
-    print!("Name: ");
-    io::Write::flush(&mut io::stdout())?;
+pub fn add(connection: &Connection, name: &Option<String>) -> Result<(), io::Error> {
+    let name = match name {
+        Some(name) => name.clone(),
+        None => {
+            print!("Name: ");
+            io::Write::flush(&mut io::stdout())?;
 
-    let mut name = String::new();
-    io::Write::flush(&mut io::stdout())?;
+            let mut name = String::new();
+            io::Write::flush(&mut io::stdout())?;
 
-    io::stdin().read_line(&mut name)?;
+            io::stdin().read_line(&mut name)?;
+
+            name
+        }
+    };
 
     print!("Secret: ");
     io::Write::flush(&mut io::stdout())?;
@@ -75,12 +96,19 @@ pub fn add(connection: Connection) -> Result<(), io::Error> {
     Ok(())
 }
 
-pub fn remove(connection: Connection) -> Result<(), io::Error> {
-    print!("Name: ");
-    io::Write::flush(&mut io::stdout())?;
+pub fn remove(connection: &Connection, name: &Option<String>) -> Result<(), io::Error> {
+    let name = match name {
+        Some(name) => name.clone(),
+        None => {
+            print!("Name: ");
+            io::Write::flush(&mut io::stdout())?;
 
-    let mut name = String::new();
-    io::stdin().read_line(&mut name)?;
+            let mut name = String::new();
+            io::stdin().read_line(&mut name)?;
+
+            name
+        }
+    };
 
     match remove_secret(&connection, name) {
         Ok(_) => (),
@@ -95,11 +123,20 @@ pub fn remove(connection: Connection) -> Result<(), io::Error> {
     Ok(())
 }
 
-pub fn edit() {
-    println!("Edit");
+pub fn edit(connection: &Connection) -> Result<(), io::Error> {
+    print!("Name: ");
+    io::Write::flush(&mut io::stdout())?;
+
+    let mut name = String::new();
+    io::stdin().read_line(&mut name)?;
+
+    remove(&connection, &Some(name.clone()))?;
+    add(&connection, &Some(name))?;
+
+    Ok(())
 }
 
-pub fn show(connection: Connection) -> Result<String, io::Error> {
+pub fn show(connection: &Connection) -> Result<String, io::Error> {
     print!("Name: ");
     io::Write::flush(&mut io::stdout())?;
 
