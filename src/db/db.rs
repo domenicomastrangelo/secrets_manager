@@ -28,7 +28,7 @@ pub fn add_secret(
 ) -> Result<(), rusqlite::Error> {
     connection
         .prepare("INSERT INTO secrets (name, secret) VALUES (?, ?)")?
-        .execute(&[&name.trim(), &secret.trim()])?;
+        .execute(&[&name, &secret])?;
 
     Ok(())
 }

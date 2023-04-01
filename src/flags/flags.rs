@@ -42,7 +42,7 @@ pub fn list(connection: &Connection) -> Result<(), io::Error> {
     match list_secrets(&connection) {
         Ok(list) => {
             for secret in list {
-                println!("{}", secret);
+                println!("{}", secret.trim());
             }
         }
         Err(_) => {
@@ -80,12 +80,16 @@ pub fn add(connection: &Connection, name: &Option<String>) -> Result<(), io::Err
     let mut secret = String::new();
     io::stdin().read_line(&mut secret)?;
 
-    match add_secret(&connection, name.clone(), secret) {
+    match add_secret(
+        &connection,
+        String::from(name.trim()),
+        String::from(secret.trim()),
+    ) {
         Ok(_) => (),
         Err(_) => return Err(io::Error::new(io::ErrorKind::Other, "Error adding secret")),
     };
 
-    let s = read_secret(&connection, name);
+    let s = read_secret(&connection, String::from(name.trim()));
     let s = match s {
         Ok(s) => s,
         Err(_) => String::from(""),
@@ -110,7 +114,7 @@ pub fn remove(connection: &Connection, name: &Option<String>) -> Result<(), io::
         }
     };
 
-    match remove_secret(&connection, name) {
+    match remove_secret(&connection, String::from(name.trim())) {
         Ok(_) => (),
         Err(_) => {
             return Err(io::Error::new(
@@ -130,8 +134,8 @@ pub fn edit(connection: &Connection) -> Result<(), io::Error> {
     let mut name = String::new();
     io::stdin().read_line(&mut name)?;
 
-    remove(&connection, &Some(name.clone()))?;
-    add(&connection, &Some(name))?;
+    remove(&connection, &Some(String::from(name.trim())))?;
+    add(&connection, &Some(String::from(name.trim())))?;
 
     Ok(())
 }
@@ -143,7 +147,7 @@ pub fn show(connection: &Connection) -> Result<String, io::Error> {
     let mut name = String::new();
     io::stdin().read_line(&mut name)?;
 
-    let secret = match read_secret(&connection, name) {
+    let secret = match read_secret(&connection, String::from(name.trim())) {
         Ok(secret) => secret,
         Err(_) => return Err(io::Error::new(io::ErrorKind::Other, "Error reading secret")),
     };
